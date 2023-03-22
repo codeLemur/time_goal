@@ -105,10 +105,12 @@ class GoalApp(App):
 def observe_lightbarrier():
     while True:
         if light_barrier.is_activated():
-            if GoalApp.system_status == globals.States.RUNNING:
+            if app.system_status == globals.States.RUNNING:
                 request_socket.post_timestamp(int(time.time_ns() / NS_PER_MS))
+                time.sleep(1) # TODO remove me
         else:
-            logging.info("Light barrier Deactivated")
+            pass
+            # logging.info("Light barrier Deactivated")
         time.sleep(0.01)
 
 
@@ -117,4 +119,5 @@ if __name__ == "__main__":
     logging.info('Goal Module of Time Measurement')
     request_socket = RequestSocket(globals.ROLE_GOAL)
     light_barrier = LightBarrier()
-    GoalApp().run()
+    app = GoalApp()
+    app.run()
