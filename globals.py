@@ -6,6 +6,8 @@ COMMAND_TYPE_KEY = 'cmd'  # Required
 TIMESTAMP_KEY = 'time'
 START_NUMBER_KEY = 'start_number'
 EVENT_KEY = 'event'
+DURATION_KEY = 'duration_ms'
+LOG_TIME_KEY = 'log_time'
 
 # Roles
 ROLE_START = 'start'
