@@ -1,4 +1,5 @@
 import os
+import time
 
 if os.name != 'nt':
     import RPi.GPIO as GPIO
@@ -14,6 +15,6 @@ class LightBarrier:
 
     def is_activated(self) -> bool:
         if os.name == 'nt':
-            return True
+            return (int(time.time()) % 2) == 0
         else:
             return GPIO.input(self.INPUT_PIN)
