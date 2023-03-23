@@ -17,6 +17,7 @@ ROLE_SERVER = 'server'
 # Command Types
 CMD_STATE_CHANGE = 'state_change'
 CMD_REPORT_TIME = 'report_time'
+CMD_REQUEST_START_NUMBER = 'request_start_number'
 
 
 class States(Enum):

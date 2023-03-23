@@ -57,6 +57,19 @@ class RequestSocket:
         except KeyError:
             logging.error(f"KeyError: Received state is invalid")
 
+    def request_start_number(self) -> int:
+        data = {
+            globals.ROLE_KEY: self._role,
+            globals.COMMAND_TYPE_KEY: globals.CMD_REQUEST_START_NUMBER,
+        }
+        response = self._post(data).text
+        try:
+            start_number = int(response)
+        except ValueError:
+            logging.error(f'Invalid start number response: {response}')
+            start_number = 0  # the default value
+        return start_number
+
     def get_current_state(self):
         return self._current_shadow_state
 
@@ -71,6 +84,7 @@ class RequestSocket:
                 logging.warning(f'status_code {response.status_code}')
         except requests.exceptions.ConnectTimeout:
             logging.error(f"Connection timeout could not reach: {self.URL}")
+        return response
 
 
 if __name__ == '__main__':

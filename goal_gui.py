@@ -42,6 +42,7 @@ class GoalScreen(Screen):
     def set_ready(self):
         logging.info('set_ready')
         request_socket.send_event(globals.Events.SET_READY)
+        self.set_start_number(0)
         self.set_duration_time('00:00')
         self.set_current_time('00:00')
 
@@ -49,6 +50,10 @@ class GoalScreen(Screen):
         logging.info('confirm_time')
         request_socket.send_event(globals.Events.STOP)
         self.current_time = self.duration_time
+
+    def set_start_number(self, start_number):
+        logging.info("set_start_number")
+        self.start_number = start_number
 
     def set_current_time(self, current_time):
         logging.info(f'Changed current time to: {current_time}')
@@ -108,6 +113,8 @@ class GoalApp(App):
         goal_screen.set_system_state(self.system_status.name, COLOR_LOOKUP[self.system_status])
         if self.system_status == globals.States.RUNNING and previous_state == globals.States.READY:
             self.start_time = time.time()
+            start_number = request_socket.request_start_number()
+            goal_screen.set_start_number(start_number)
         if self.system_status == globals.States.RUNNING:
             goal_screen.confirm_button.disabled = False
             goal_screen.ready_button.disabled = True
