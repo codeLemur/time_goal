@@ -4,6 +4,7 @@
     ready_button: ready_button
     confirm_button: confirm_button
     system_status: system_status
+    light_barrier: light_barrier
     FloatLayout:
         cols:2
 
@@ -11,24 +12,24 @@
             Label:
                 text:"Start number:"
                 font_size: (root.width**2 + root.height**2) / 13**4
-                pos_hint: {"x":0.01, "top":0.9}
+                pos_hint: {"x":0.01, "top":0.98}
                 size_hint: 0.5, 0.15
             Label:
                 text: str(root.start_number)
                 font_size: (root.width**2 + root.height**2) / 13**4
-                pos_hint: {"x": 0.6 , "top":0.9}
+                pos_hint: {"x": 0.6 , "top":0.98}
                 size_hint: 0.5, 0.15
             Label:
                 text: "System Status:"
                 font_size: (root.width**2 + root.height**2) / 13**4
-                pos_hint: {"x": 0.01 , "top":0.7}
+                pos_hint: {"x": 0.01 , "top":0.83}
                 size_hint: 0.5, 0.15
                 halign:"left"
             Label:
                 id: system_status
                 text: "IDLE"
                 font_size: (root.width**2 + root.height**2) / 13**4
-                pos_hint: {"x": 0.5 , "top":0.7}
+                pos_hint: {"x": 0.5 , "top":0.83}
                 size_hint: 0.4, 0.15
                 color: (0, 0, 0)  # text color Black
                 canvas.before:
@@ -40,36 +41,55 @@
             Label:
                 text:"Current time:"
                 font_size: (root.width**2 + root.height**2) / 13**4
-                pos_hint: {"x":0.01, "top":0.5}
+                pos_hint: {"x":0.01, "top":0.68}
                 size_hint: 0.5, 0.15
             Label:
                 text: str(root.current_time)
                 font_size: (root.width**2 + root.height**2) / 13**4
-                pos_hint: {"x": 0.6 , "top":0.5}
+                pos_hint: {"x": 0.6 , "top":0.68}
                 size_hint: 0.5, 0.15
             Label:
                 text:"Stopped at:"
                 font_size: (root.width**2 + root.height**2) / 13**4
-                pos_hint: {"x":0.01, "top":0.3}
+                pos_hint: {"x":0.01, "top":0.53}
                 size_hint: 0.5, 0.15
             Label:
                 text: str(root.duration_time)
                 font_size: (root.width**2 + root.height**2) / 13**4
-                pos_hint: {"x": 0.6 , "top":0.3}
+                pos_hint: {"x": 0.6 , "top":0.53}
                 size_hint: 0.5, 0.15
             Button:
                 id: ready_button
-                pos_hint:{"x":0.05,"top":0.15}
+                pos_hint:{"x":0.05,"top":0.38}
                 size_hint: 0.4, 0.1
                 font_size: (root.width**2 + root.height**2) / 14**4
                 text: "Ready for next Race"
                 on_release: root.set_ready()
             Button:
                 id: confirm_button
-                pos_hint:{"x":0.5,"top":0.15}
+                pos_hint:{"x":0.5,"top":0.38}
                 size_hint: 0.4, 0.1
                 font_size: (root.width**2 + root.height**2) / 14**4
                 text: "Confirm race time"
                 on_release: root.confirm_time()
                 disabled: True
+            Label:
+                text: "Light barrier:"
+                font_size: (root.width**2 + root.height**2) / 13**4
+                pos_hint: {"x": 0.01 , "top":0.23}
+                size_hint: 0.5, 0.15
+                halign:"left"
+            Label:
+                id: light_barrier
+                text: "Deactivated"
+                font_size: (root.width**2 + root.height**2) / 13**4
+                pos_hint: {"x": 0.5 , "top":0.23}
+                size_hint: 0.4, 0.15
+                color: (0, 0, 0)  # text color Black
+                canvas.before:
+                    Color:
+                        rgb: (0.4, 1, 0.4)
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
 
