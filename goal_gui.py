@@ -1,7 +1,7 @@
 import logging
 
 from kivy.core.window import Window
-Window.size = (1024, 600)
+Window.size = (800, 480)
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
