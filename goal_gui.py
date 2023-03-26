@@ -1,7 +1,9 @@
 import logging
 
 from kivy.core.window import Window
-Window.size = (800, 520)
+Window.size = (800, 420)
+Window.top = 0
+
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -19,7 +21,7 @@ from light_barrier import LightBarrier
 from request_socket import RequestSocket
 
 NS_PER_MS = int(1e6)
-STATUS_POLL_PERIOD_S = 0.1
+STATUS_POLL_PERIOD_S = 2
 
 RED = (1, 0, 0)
 GREEN = (0, 0.4, 0)
