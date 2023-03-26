@@ -74,6 +74,7 @@ class RequestSocket:
         return self._current_shadow_state
 
     def _post(self, data: dict):
+        response = 0
         try:
             response = requests.post(self.URL, json=data, timeout=2)
             if response.status_code == 200:
