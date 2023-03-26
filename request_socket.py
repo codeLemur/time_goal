@@ -8,7 +8,7 @@ import time
 
 
 class RequestSocket:
-    URL = 'http://192.168.1.82'
+    URL = 'http://codelemur.pythonanywhere.com/'
     DATA_PATH = 'data'
     GOAL_TIME_FILENAME = os.path.join(DATA_PATH, 'goal_time.csv')
 
