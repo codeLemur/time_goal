@@ -1,12 +1,11 @@
 import logging
 
-from kivy.config import Config
-Config.set('graphics', 'fullscreen', 1)
+from kivy.core.window import Window
+Window.fullscreen = True
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import ObjectProperty, NumericProperty, StringProperty
-from kivy.core.window import Window
 from kivy.graphics import Color, Rectangle
 from kivy.clock import Clock
 from kivy.clock import mainthread
