@@ -60,15 +60,15 @@
                 size_hint: 0.5, 0.15
             Button:
                 id: ready_button
-                pos_hint:{"x":0.05,"top":0.38}
-                size_hint: 0.4, 0.1
+                pos_hint:{"x":0.05,"top":0.33}
+                size_hint: 0.4, 0.15
                 font_size: (root.width**2 + root.height**2) / 14**4
                 text: "Ready for next Race"
                 on_release: root.set_ready()
             Button:
                 id: confirm_button
-                pos_hint:{"x":0.5,"top":0.38}
-                size_hint: 0.4, 0.1
+                pos_hint:{"x":0.5,"top":0.33}
+                size_hint: 0.4, 0.15
                 font_size: (root.width**2 + root.height**2) / 14**4
                 text: "Confirm race time"
                 on_release: root.confirm_time()
@@ -76,14 +76,14 @@
             Label:
                 text: "Light barrier:"
                 font_size: (root.width**2 + root.height**2) / 13**4
-                pos_hint: {"x": 0.01 , "top":0.23}
+                pos_hint: {"x": 0.01 , "top":0.18}
                 size_hint: 0.5, 0.15
                 halign:"left"
             Label:
                 id: light_barrier
                 text: "Deactivated"
                 font_size: (root.width**2 + root.height**2) / 13**4
-                pos_hint: {"x": 0.5 , "top":0.23}
+                pos_hint: {"x": 0.5 , "top":0.18}
                 size_hint: 0.4, 0.15
                 color: (0, 0, 0)  # text color Black
                 canvas.before:
