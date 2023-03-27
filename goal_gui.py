@@ -143,6 +143,8 @@ class GoalApp(App):
 
 
 def observe_lightbarrier():
+    SENSOR_HYSTERESE_S = 1
+    time_last_activated_s = 0
     while True:
         if light_barrier.is_activated():
             if not light_barrier.current_state:
@@ -150,9 +152,11 @@ def observe_lightbarrier():
                 sm.get_screen("goal").set_light_barrier("Activated", ORANGE)
                 light_barrier.current_state = True
             if app.system_status == globals.States.RUNNING:
-                timestamp_ms = int(time.time_ns() / NS_PER_MS)
-                request_socket.post_timestamp(timestamp_ms)
-                sm.get_screen('goal').set_duration_time(f'{datetime.fromtimestamp(time.time() - app.start_time).strftime("%M:%S.%f")[:-5]}')
+                if (time.time() - time_last_activated_s) > SENSOR_HYSTERESE_S:
+                    timestamp_ms = int(time.time_ns() / NS_PER_MS)
+                    request_socket.post_timestamp(timestamp_ms)
+                    sm.get_screen('goal').set_duration_time(f'{datetime.fromtimestamp(time.time() - app.start_time).strftime("%M:%S.%f")[:-5]}')
+                    time_last_activated_s = time.time()
         elif light_barrier.current_state:
             logging.info("Light barrier Deactivated")
             light_barrier.current_state = False
