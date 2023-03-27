@@ -103,13 +103,21 @@ class GoalApp(App):
     start_time = 0
 
     def build(self):
-        Thread(target=observe_lightbarrier).start()
+        Thread(target=observe_lightbarrier,  daemon=True).start()
+        Thread(target=self.update_displayed_time, daemon=True).start()
         Clock.schedule_interval(self.start_status_request, STATUS_POLL_PERIOD_S)
         return sm
 
     def start_status_request(self, *args):
         logging.info(time.time())
         Thread(target=self.poll_system_status).start()
+
+    def update_displayed_time(self):
+        while True:
+            goal_screen = sm.get_screen('goal')
+            if self.system_status == globals.States.RUNNING:
+                goal_screen.set_current_time(f'{datetime.fromtimestamp(time.time() - app.start_time).strftime("%M:%S.%f")[:-5]}')
+            time.sleep(0.1)
 
     def poll_system_status(self):
         request_socket.request_current_state()
@@ -127,7 +135,6 @@ class GoalApp(App):
             goal_screen.confirm_button.disabled = False
             goal_screen.ready_button.disabled = True
             # Update current time
-            goal_screen.set_current_time(f'{datetime.fromtimestamp(time.time() - app.start_time).strftime("%M:%S.%f")[:-5]}')
         elif self.system_status in [globals.States.IDLE, globals.States.STOPPED]:
             goal_screen.ready_button.disabled = False
             goal_screen.confirm_button.disabled = True
