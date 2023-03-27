@@ -140,13 +140,12 @@ def observe_lightbarrier():
         if light_barrier.is_activated():
             if not light_barrier.current_state:
                 logging.info("Light barrier Activated")
-                sm.get_screen("goal").set_light_barrier("Deactivated", ORANGE)
+                sm.get_screen("goal").set_light_barrier("Activated", ORANGE)
                 light_barrier.current_state = True
             if app.system_status == globals.States.RUNNING:
                 timestamp_ms = int(time.time_ns() / NS_PER_MS)
                 request_socket.post_timestamp(timestamp_ms)
                 sm.get_screen('goal').set_duration_time(f'{datetime.fromtimestamp(time.time() - app.start_time).strftime("%M:%S.%f")[:-5]}')
-                time.sleep(1)  # TODO remove me
         elif light_barrier.current_state:
             logging.info("Light barrier Deactivated")
             light_barrier.current_state = False
