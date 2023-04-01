@@ -1,9 +1,8 @@
 import logging
 
 from kivy.core.window import Window
-# Window.size = (800, 420)
-# Window.top = 0
-Window.fullscreen = 'auto'
+Window.size = (800, 420)
+Window.top = 0
 Window.show_cursor = False
 
 from kivy.app import App
@@ -107,11 +106,11 @@ class GoalApp(App):
     def build(self):
         Thread(target=observe_lightbarrier,  daemon=True).start()
         Thread(target=self.update_displayed_time, daemon=True).start()
-        Thread(target=self.poll_system_status).start()
-        # Clock.schedule_interval(self.start_status_request, STATUS_POLL_PERIOD_S)
+        Clock.schedule_interval(self.start_status_request, STATUS_POLL_PERIOD_S)
         return sm
 
     def start_status_request(self, *args):
+        logging.info(time.time())
         Thread(target=self.poll_system_status).start()
 
     def update_displayed_time(self):
@@ -122,27 +121,26 @@ class GoalApp(App):
             time.sleep(0.1)
 
     def poll_system_status(self):
-        while True:
-            time.sleep(STATUS_POLL_PERIOD_S)
-            request_socket.request_current_state()
-            previous_state = self.system_status
-            self.system_status = request_socket.get_current_state()
-            logging.info(f'Current status: {self.system_status}')
-            goal_screen = sm.get_screen('goal')
-            goal_screen.set_system_state(self.system_status.name, COLOR_LOOKUP[self.system_status])
-            if self.system_status == globals.States.RUNNING and previous_state == globals.States.READY:
-                self.start_time = time.time()
-                start_number = request_socket.request_start_number()
-                goal_screen.set_start_number(start_number)
-            if self.system_status == globals.States.RUNNING:
-                goal_screen.confirm_button.disabled = False
-                goal_screen.ready_button.disabled = True
-                # Update current time
-            elif self.system_status in [globals.States.IDLE, globals.States.STOPPED]:
-                goal_screen.ready_button.disabled = False
-                goal_screen.confirm_button.disabled = True
-            else:
-                goal_screen.confirm_button.disabled = True
+        request_socket.request_current_state()
+        logging.info(f'Time2: {time.time()}')
+        previous_state = self.system_status
+        self.system_status = request_socket.get_current_state()
+        logging.info(f'Current status: {self.system_status}')
+        goal_screen = sm.get_screen('goal')
+        goal_screen.set_system_state(self.system_status.name, COLOR_LOOKUP[self.system_status])
+        if self.system_status == globals.States.RUNNING and previous_state == globals.States.READY:
+            self.start_time = time.time()
+            start_number = request_socket.request_start_number()
+            goal_screen.set_start_number(start_number)
+        if self.system_status == globals.States.RUNNING:
+            goal_screen.confirm_button.disabled = False
+            goal_screen.ready_button.disabled = True
+            # Update current time
+        elif self.system_status in [globals.States.IDLE, globals.States.STOPPED]:
+            goal_screen.ready_button.disabled = False
+            goal_screen.confirm_button.disabled = True
+        else:
+            goal_screen.confirm_button.disabled = True
 
 
 def observe_lightbarrier():
