@@ -2,8 +2,8 @@ import logging
 
 from kivy.core.window import Window
 Window.fullscreen = 'auto'
-Window.size = (800, 420)
-Window.top = 0
+# Window.size = (800, 420)
+# Window.top = 0
 Window.show_cursor = False
 
 from kivy.app import App
