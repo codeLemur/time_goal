@@ -164,7 +164,7 @@ def observe_lightbarrier():
             logging.info("Light barrier Deactivated")
             light_barrier.current_state = False
             sm.get_screen("goal").set_light_barrier("Deactivated", LIGHT_GREEN)
-        time.sleep(0.03)
+        time.sleep(0.01)
 
 
 if __name__ == "__main__":
