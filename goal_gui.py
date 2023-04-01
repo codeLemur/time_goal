@@ -132,7 +132,7 @@ class GoalApp(App):
             start_number = request_socket.request_start_number()
             goal_screen.set_start_number(start_number)
         if self.system_status == globals.States.RUNNING:
-            goal_screen.confirm_button.disabled = False
+            # goal_screen.confirm_button.disabled = False
             goal_screen.ready_button.disabled = True
             # Update current time
         elif self.system_status in [globals.States.IDLE, globals.States.STOPPED]:
@@ -156,6 +156,7 @@ def observe_lightbarrier():
                     timestamp_ms = int(time.time_ns() / NS_PER_MS)
                     request_socket.post_timestamp(timestamp_ms)
                     sm.get_screen('goal').set_duration_time(f'{datetime.fromtimestamp(time.time() - app.start_time).strftime("%M:%S.%f")[:-5]}')
+                    sm.get_screen('goal').confirm_button.disabled = False
                     time_last_activated_s = time.time()
         elif light_barrier.current_state:
             logging.info("Light barrier Deactivated")
