@@ -1,6 +1,7 @@
 import logging
 
 from kivy.core.window import Window
+Window.fullscreen = 'auto'
 Window.size = (800, 420)
 Window.top = 0
 Window.show_cursor = False
@@ -110,7 +111,6 @@ class GoalApp(App):
         return sm
 
     def start_status_request(self, *args):
-        logging.info(time.time())
         Thread(target=self.poll_system_status).start()
 
     def update_displayed_time(self):
@@ -122,7 +122,6 @@ class GoalApp(App):
 
     def poll_system_status(self):
         request_socket.request_current_state()
-        logging.info(f'Time2: {time.time()}')
         previous_state = self.system_status
         self.system_status = request_socket.get_current_state()
         logging.info(f'Current status: {self.system_status}')
