@@ -1,10 +1,14 @@
 import logging
+import os
 
 from kivy.core.window import Window
-Window.fullscreen = 'auto'
-# Window.size = (800, 420)
-# Window.top = 0
-Window.show_cursor = False
+if os.name != 'nt':
+  Window.fullscreen = 'auto'
+  Window.show_cursor = False
+else:
+    Window.size = (800, 420)
+    Window.top = 0
+
 
 from kivy.app import App
 from kivy.lang import Builder
