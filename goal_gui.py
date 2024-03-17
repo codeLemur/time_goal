@@ -19,12 +19,10 @@ from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import ObjectProperty, NumericProperty, StringProperty
 from kivy.graphics import Color, Rectangle
-from kivy.clock import Clock
 from kivy.clock import mainthread
 
 import time
 from datetime import datetime
-from threading import Thread
 
 import globals
 from light_barrier import LightBarrier
