@@ -1,5 +1,7 @@
 import logging
 import os
+import asyncio
+import queue
 
 from kivy.core.window import Window
 if os.name != 'nt':
@@ -50,14 +52,14 @@ class GoalScreen(Screen):
 
     def set_ready(self):
         logging.info('set_ready')
-        request_socket.send_event(globals.Events.SET_READY)
+        event_queue.put_nowait(globals.Events.SET_READY)
         self.set_start_number(0)
         self.set_duration_time('00:00')
         self.set_current_time('00:00')
 
     def confirm_time(self):
         logging.info('confirm_time')
-        request_socket.send_event(globals.Events.STOP)
+        event_queue.put_nowait(globals.Events.STOP)
         self.current_time = self.duration_time
 
     def set_start_number(self, start_number):
@@ -65,7 +67,6 @@ class GoalScreen(Screen):
         self.start_number = start_number
 
     def set_current_time(self, current_time):
-        logging.info(f'Changed current time to: {current_time}')
         self.current_time = current_time
 
     def set_duration_time(self, duration_time):
@@ -107,66 +108,80 @@ sm.current = "goal"
 class GoalApp(App):
     system_status = globals.States.IDLE
     start_time = 0
+    light_barrier_task = None
+    request_task = None
+    update_time_task = None
 
     def build(self):
-        Thread(target=observe_lightbarrier,  daemon=True).start()
-        Thread(target=self.update_displayed_time, daemon=True).start()
-        Clock.schedule_interval(self.start_status_request, STATUS_POLL_PERIOD_S)
         return sm
 
-    def start_status_request(self, *args):
-        Thread(target=self.poll_system_status).start()
+    def app_func(self):
+        self.light_barrier_task = asyncio.ensure_future(self.observe_lightbarrier())
+        self.request_task = asyncio.ensure_future(self.poll_system_status())
+        self.update_time_task = asyncio.ensure_future(self.update_displayed_time())
 
-    def update_displayed_time(self):
+        async def run_wrapper():
+            await self.async_run(async_lib='asyncio')
+            print('App done')
+            self.light_barrier_task.cancel()
+            self.request_task.cancel()
+            self.update_time_task.cancel()
+
+        return asyncio.gather(run_wrapper(), self.light_barrier_task, self.request_task, self.update_time_task)
+
+    async def update_displayed_time(self):
         while True:
             goal_screen = sm.get_screen('goal')
             if self.system_status == globals.States.RUNNING:
-                goal_screen.set_current_time(f'{datetime.fromtimestamp(time.time() - app.start_time).strftime("%M:%S.%f")[:-5]}')
-            time.sleep(0.1)
+                goal_screen.set_current_time(f'{datetime.fromtimestamp(time.time() - self.start_time).strftime("%M:%S.%f")[:-5]}')
+            await asyncio.sleep(0.09)
 
-    def poll_system_status(self):
-        request_socket.request_current_state()
-        previous_state = self.system_status
-        self.system_status = request_socket.get_current_state()
-        logging.info(f'Current status: {self.system_status}')
-        goal_screen = sm.get_screen('goal')
-        goal_screen.set_system_state(self.system_status.name, COLOR_LOOKUP[self.system_status])
-        if self.system_status == globals.States.RUNNING and previous_state == globals.States.READY:
-            self.start_time = time.time()
-            start_number = request_socket.request_start_number()
-            goal_screen.set_start_number(start_number)
-        if self.system_status == globals.States.RUNNING:
-            # goal_screen.confirm_button.disabled = False
-            goal_screen.ready_button.disabled = True
-            # Update current time
-        elif self.system_status in [globals.States.IDLE, globals.States.STOPPED]:
-            goal_screen.ready_button.disabled = False
-            goal_screen.confirm_button.disabled = True
-        else:
-            goal_screen.confirm_button.disabled = True
+    async def poll_system_status(self):
+        while True:
+            while not event_queue.empty():
+                await request_socket.send_event(event_queue.get_nowait())
+            await request_socket.request_current_state()
+            previous_state = self.system_status
+            self.system_status = request_socket.get_current_state()
+            logging.info(f'Current status: {self.system_status}')
+            goal_screen = sm.get_screen('goal')
+            goal_screen.set_system_state(self.system_status.name, COLOR_LOOKUP[self.system_status])
+            if self.system_status == globals.States.RUNNING and previous_state == globals.States.READY:
+                self.start_time = time.time()
+                start_number = await request_socket.request_start_number()
+                goal_screen.set_start_number(start_number)
+            if self.system_status == globals.States.RUNNING:
+                # goal_screen.confirm_button.disabled = False
+                goal_screen.ready_button.disabled = True
+                # Update current time
+            elif self.system_status in [globals.States.IDLE, globals.States.STOPPED]:
+                goal_screen.ready_button.disabled = False
+                goal_screen.confirm_button.disabled = True
+            else:
+                goal_screen.confirm_button.disabled = True
+            await asyncio.sleep(STATUS_POLL_PERIOD_S)
 
-
-def observe_lightbarrier():
-    SENSOR_HYSTERESE_S = 1
-    time_last_activated_s = 0
-    while True:
-        if light_barrier.is_activated():
-            if not light_barrier.current_state:
-                logging.info("Light barrier Activated")
-                sm.get_screen("goal").set_light_barrier("Activated", ORANGE)
-                light_barrier.current_state = True
-            if app.system_status == globals.States.RUNNING:
-                if (time.time() - time_last_activated_s) > SENSOR_HYSTERESE_S:
-                    timestamp_ms = int(time.time_ns() / NS_PER_MS)
-                    request_socket.post_timestamp(timestamp_ms)
-                    sm.get_screen('goal').set_duration_time(f'{datetime.fromtimestamp(time.time() - app.start_time).strftime("%M:%S.%f")[:-5]}')
-                    sm.get_screen('goal').confirm_button.disabled = False
-                    time_last_activated_s = time.time()
-        elif light_barrier.current_state:
-            logging.info("Light barrier Deactivated")
-            light_barrier.current_state = False
-            sm.get_screen("goal").set_light_barrier("Deactivated", LIGHT_GREEN)
-        time.sleep(0.01)
+    async def observe_lightbarrier(self):
+        SENSOR_HYSTERESE_S = 1
+        time_last_activated_s = 0
+        while True:
+            if light_barrier.is_activated():
+                if not light_barrier.current_state:
+                    logging.info("Light barrier Activated")
+                    sm.get_screen("goal").set_light_barrier("Activated", ORANGE)
+                    light_barrier.current_state = True
+                if self.system_status == globals.States.RUNNING:
+                    if (time.time() - time_last_activated_s) > SENSOR_HYSTERESE_S:
+                        timestamp_ms = int(time.time_ns() / NS_PER_MS)
+                        await request_socket.post_timestamp(timestamp_ms)
+                        sm.get_screen('goal').set_duration_time(f'{datetime.fromtimestamp(time.time() - self.start_time).strftime("%M:%S.%f")[:-5]}')
+                        sm.get_screen('goal').confirm_button.disabled = False
+                        time_last_activated_s = time.time()
+            elif light_barrier.current_state:
+                logging.info("Light barrier Deactivated")
+                light_barrier.current_state = False
+                sm.get_screen("goal").set_light_barrier("Deactivated", LIGHT_GREEN)
+            await asyncio.sleep(0.01)
 
 
 if __name__ == "__main__":
@@ -174,5 +189,7 @@ if __name__ == "__main__":
     logging.info('Goal Module of Time Measurement')
     request_socket = RequestSocket(globals.ROLE_GOAL)
     light_barrier = LightBarrier()
-    app = GoalApp()
-    app.run()
+    event_queue = queue.Queue()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(GoalApp().app_func())
+    loop.close()

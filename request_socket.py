@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 import time
 from enum import Enum
+import asyncio
 
 
 class HttpStatus(Enum):
@@ -38,7 +39,7 @@ class RequestSocket:
                 writer = csv.DictWriter(goal_time_file, fieldnames=self.goal_time_fieldnames)
                 writer.writeheader()
 
-    def post_timestamp(self, timestamp_ms: int):
+    async def post_timestamp(self, timestamp_ms: int):
         logging.info(timestamp_ms)
         data = {
             globals.ROLE_KEY: self._role,
@@ -49,20 +50,20 @@ class RequestSocket:
             writer = csv.DictWriter(goal_time_file, fieldnames=self.goal_time_fieldnames)
             writer.writerow({globals.TIMESTAMP_KEY: timestamp_ms,
                              globals.LOG_TIME_KEY: datetime.fromtimestamp(time.time())})
-        self._post(data)
+        await self._post(data)
 
-    def send_event(self, event: globals.Events):
+    async def send_event(self, event: globals.Events):
         logging.info(f'Sending event: {event.name}')
         data = {
             globals.ROLE_KEY: self._role,
             globals.COMMAND_TYPE_KEY: globals.CMD_STATE_CHANGE,
             globals.EVENT_KEY: event.name
         }
-        self._post(data)
+        await self._post(data)
 
-    def request_current_state(self):
+    async def request_current_state(self):
         try:
-            response = requests.get(self.URL, timeout=2)
+            response = await asyncio.to_thread(requests.get, self.URL, timeout=2)
             if response.status_code == HttpStatus.OK.value:
                 logging.info(f'Current state: {response.text}')
                 self._current_shadow_state = globals.States[response.text]
@@ -76,26 +77,26 @@ class RequestSocket:
             logging.error(f"GET received exception: {exp}")
             self._current_shadow_state = globals.States.ERROR
 
-    def request_start_number(self) -> int:
+    async def request_start_number(self) -> int:
         data = {
             globals.ROLE_KEY: self._role,
             globals.COMMAND_TYPE_KEY: globals.CMD_REQUEST_START_NUMBER,
         }
-        response = self._post(data).text
+        response = await self._post(data)
         try:
-            start_number = int(response)
+            start_number = int(response.text)
         except ValueError:
-            logging.error(f'Invalid start number response: {response}')
+            logging.error(f'Invalid start number response: {response.text}')
             start_number = 0  # the default value
         return start_number
 
     def get_current_state(self):
         return self._current_shadow_state
 
-    def _post(self, data: dict):
+    async def _post(self, data: dict):
         response = 0
         try:
-            response = requests.post(self.URL, json=data, timeout=2)
+            response = await asyncio.to_thread(requests.post, self.URL, json=data, timeout=2)
             if response.status_code == HttpStatus.OK.value:
                 logging.info(f'Server response: {response.text}')
             else:
