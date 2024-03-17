@@ -68,11 +68,13 @@ class RequestSocket:
                 self._current_shadow_state = globals.States[response.text]
             else:
                 logging.error(f"GET received invalid status code: {HttpStatus(response.status_code).name}")
+                self._current_shadow_state = globals.States.ERROR
         except requests.exceptions.ConnectTimeout:
             logging.error(f"Connection timeout could not reach: {self.URL}")
-            # TODO change state to ERROR?
+            self._current_shadow_state = globals.States.ERROR
         except Exception as exp:
             logging.error(f"GET received exception: {exp}")
+            self._current_shadow_state = globals.States.ERROR
 
     def request_start_number(self) -> int:
         data = {
@@ -98,10 +100,13 @@ class RequestSocket:
                 logging.info(f'Server response: {response.text}')
             else:
                 logging.warning(f'POST received invalid status code {HttpStatus(response.status_code).name}')
+                self._current_shadow_state = globals.States.ERROR
         except requests.exceptions.ConnectTimeout:
             logging.error(f"Connection timeout could not reach: {self.URL}")
+            self._current_shadow_state = globals.States.ERROR
         except Exception as exp:
             logging.error(f"POST received exception: {exp}")
+            self._current_shadow_state = globals.States.ERROR
         return response
 
 
