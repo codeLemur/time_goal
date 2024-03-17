@@ -15,8 +15,10 @@ def activate_venv_and_run_script():
         return
 
     # Activate the virtual environment and run the Python script
-    command = f"source {venv_path} && python {python_script_path}"
-    subprocess.run(command, shell=True)
+    activate_script_path = os.path.join(venv_path, "bin", "activate_this.py")
+    exec(open(activate_script_path).read(), {'__file__': activate_script_path})
+
+    subprocess.run(["python", python_script_path])
 
 if __name__ == "__main__":
     activate_venv_and_run_script()
