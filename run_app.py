@@ -14,13 +14,9 @@ def activate_venv_and_run_script():
         messagebox.showerror("Error", "Paths not found. Please check the paths in the script.")
         return
 
-    # Activate the virtual environment
-    activate_command = f"source {venv_path}"
-    subprocess.run(activate_command, shell=True)
-
-    # Run the Python script
-    run_command = f"python {python_script_path}"
-    subprocess.run(run_command, shell=True)
+    # Activate the virtual environment and run the Python script
+    command = f"source {venv_path} && python {python_script_path}"
+    subprocess.run(command, shell=True)
 
 if __name__ == "__main__":
     activate_venv_and_run_script()
