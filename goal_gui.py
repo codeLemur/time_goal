@@ -11,6 +11,8 @@ else:
     Window.size = (800, 420)
     Window.top = 0
 
+os.environ['KIVY_WINDOW'] = 'egl_rpi'
+
 
 from kivy.app import App
 from kivy.lang import Builder
