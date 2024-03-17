@@ -5,6 +5,20 @@ import logging
 import os
 from datetime import datetime
 import time
+from enum import Enum
+
+
+class HttpStatus(Enum):
+    OK = 200
+    CREATED = 201
+    ACCEPTED = 202
+    NO_CONTENT = 204
+    BAD_REQUEST = 400
+    UNAUTHORIZED = 401
+    FORBIDDEN = 403
+    NOT_FOUND = 404
+    INTERNAL_SERVER_ERROR = 500
+    SERVICE_UNAVAILABLE = 503
 
 
 class RequestSocket:
@@ -49,13 +63,16 @@ class RequestSocket:
     def request_current_state(self):
         try:
             response = requests.get(self.URL, timeout=2)
-            logging.info(f'Current state: {response.text}')
-            self._current_shadow_state = globals.States[response.text]
+            if response.status_code == HttpStatus.OK.value:
+                logging.info(f'Current state: {response.text}')
+                self._current_shadow_state = globals.States[response.text]
+            else:
+                logging.error(f"GET received invalid status code: {HttpStatus(response.status_code).name}")
         except requests.exceptions.ConnectTimeout:
             logging.error(f"Connection timeout could not reach: {self.URL}")
             # TODO change state to ERROR?
-        except KeyError:
-            logging.error(f"KeyError: Received state is invalid")
+        except Exception as exp:
+            logging.error(f"GET received exception: {exp}")
 
     def request_start_number(self) -> int:
         data = {
@@ -77,14 +94,14 @@ class RequestSocket:
         response = 0
         try:
             response = requests.post(self.URL, json=data, timeout=2)
-            if response.status_code == 200:
+            if response.status_code == HttpStatus.OK.value:
                 logging.info(f'Server response: {response.text}')
-            elif response.status_code == 400:
-                logging.error("Request failed")
             else:
-                logging.warning(f'status_code {response.status_code}')
+                logging.warning(f'POST received invalid status code {HttpStatus(response.status_code).name}')
         except requests.exceptions.ConnectTimeout:
             logging.error(f"Connection timeout could not reach: {self.URL}")
+        except Exception as exp:
+            logging.error(f"POST received exception: {exp}")
         return response
 
 
