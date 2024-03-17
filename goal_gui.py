@@ -27,7 +27,7 @@ from light_barrier import LightBarrier
 from request_socket import RequestSocket
 
 NS_PER_MS = int(1e6)
-STATUS_POLL_PERIOD_S = 2.5
+STATUS_POLL_PERIOD_S = 0.5
 
 RED = (1, 0, 0)
 GREEN = (0, 0.4, 0)
