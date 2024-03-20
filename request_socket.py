@@ -1,4 +1,4 @@
-import requests
+
 import csv
 import globals
 import logging
@@ -7,6 +7,8 @@ from datetime import datetime
 import time
 from enum import Enum
 import asyncio
+import requests_async as requests
+REQUEST_TIMEOUT=0.4
 
 
 class HttpStatus(Enum):
@@ -63,7 +65,8 @@ class RequestSocket:
 
     async def request_current_state(self):
         try:
-            response = await asyncio.to_thread(requests.get, self.URL, timeout=2)
+            async with requests.Session() as session:
+                response = await session.get(self.URL, timeout=REQUEST_TIMEOUT)
             if response.status_code == HttpStatus.OK.value:
                 logging.info(f'Current state: {response.text}')
                 self._current_shadow_state = globals.States[response.text]
@@ -96,7 +99,8 @@ class RequestSocket:
     async def _post(self, data: dict):
         response = 0
         try:
-            response = await asyncio.to_thread(requests.post, self.URL, json=data, timeout=2)
+            async with requests.Session() as session:
+                response = await session.post(self.URL, json=data, timeout=REQUEST_TIMEOUT)
             if response.status_code == HttpStatus.OK.value:
                 logging.info(f'Server response: {response.text}')
             else:

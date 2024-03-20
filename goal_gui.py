@@ -134,7 +134,7 @@ class GoalApp(App):
             goal_screen = sm.get_screen('goal')
             if self.system_status == globals.States.RUNNING:
                 goal_screen.set_current_time(f'{datetime.fromtimestamp(time.time() - self.start_time).strftime("%M:%S.%f")[:-5]}')
-            await asyncio.sleep(0.09)
+            await asyncio.sleep(0.49)
 
     async def poll_system_status(self):
         while True:
