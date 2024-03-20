@@ -8,7 +8,7 @@ import time
 from enum import Enum
 import asyncio
 import requests_async as requests
-REQUEST_TIMEOUT=0.4
+REQUEST_TIMEOUT=0.8
 
 
 class HttpStatus(Enum):
@@ -90,6 +90,9 @@ class RequestSocket:
             start_number = int(response.text)
         except ValueError:
             logging.error(f'Invalid start number response: {response.text}')
+            start_number = 0  # the default value
+        except AttributeError:
+            logging.error(f'Invalid start number response: {response}')
             start_number = 0  # the default value
         return start_number
 
