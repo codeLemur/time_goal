@@ -116,6 +116,7 @@ class GoalApp(App):
         return sm
 
     def app_func(self):
+        self.light_barrier_task = asyncio.ensure_future(self.observe_lightbarrier())
         self.request_task = asyncio.ensure_future(self.poll_system_status())
         self.update_time_task = asyncio.ensure_future(self.update_displayed_time())
 
@@ -126,7 +127,7 @@ class GoalApp(App):
             self.request_task.cancel()
             self.update_time_task.cancel()
 
-        return asyncio.gather(run_wrapper(), self.request_task, self.update_time_task)
+        return asyncio.gather(run_wrapper(), self.light_barrier_task, self.request_task, self.update_time_task)
 
     async def update_displayed_time(self):
         while True:
