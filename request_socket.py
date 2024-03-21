@@ -64,11 +64,37 @@ class RequestSocket:
         await self._post(data)
 
     async def request_current_state(self):
-        pass
+        try:
+            async with requests.Session() as session:
+                response = await session.get(self.URL, timeout=REQUEST_TIMEOUT)
+            if response.status_code == HttpStatus.OK.value:
+                logging.info(f'Current state: {response.text}')
+                self._current_shadow_state = globals.States[response.text]
+            else:
+                logging.error(f"GET received invalid status code: {HttpStatus(response.status_code).name}")
+                self._current_shadow_state = globals.States.ERROR
+        except requests.exceptions.ConnectTimeout:
+            logging.error(f"Connection timeout could not reach: {self.URL}")
+            self._current_shadow_state = globals.States.ERROR
+        except Exception as exp:
+            logging.error(f"GET received exception: {exp}")
+            self._current_shadow_state = globals.States.ERROR
 
     async def request_start_number(self) -> int:
-
-        return 0
+        data = {
+            globals.ROLE_KEY: self._role,
+            globals.COMMAND_TYPE_KEY: globals.CMD_REQUEST_START_NUMBER,
+        }
+        response = await self._post(data)
+        try:
+            start_number = int(response.text)
+        except ValueError:
+            logging.error(f'Invalid start number response: {response.text}')
+            start_number = 0  # the default value
+        except AttributeError:
+            logging.error(f'Invalid start number response: {response}')
+            start_number = 0  # the default value
+        return start_number
 
     def get_current_state(self):
         return self._current_shadow_state
