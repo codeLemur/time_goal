@@ -73,12 +73,10 @@ class GoalScreen(Screen):
         logging.info(f'Changed duration time to: {duration_time}')
         self.duration_time = duration_time
 
-    @mainthread
     def set_system_state(self, state: str, color: tuple):
         self.system_status.text = state
         self._set_background_color(self.system_status, color)
 
-    @mainthread
     def set_light_barrier(self, state: str, color: tuple):
         self.light_barrier.text = state
         self._set_background_color(self.light_barrier, color)
