@@ -134,7 +134,7 @@ class GoalApp(App):
             goal_screen = sm.get_screen('goal')
             if self.system_status == globals.States.RUNNING:
                 goal_screen.set_current_time(f'{datetime.fromtimestamp(time.time() - self.start_time).strftime("%M:%S.%f")[:-5]}')
-            await asyncio.sleep(0.49)
+            await asyncio.sleep(0.09)
 
     async def poll_system_status(self):
         while True:
@@ -161,7 +161,7 @@ class GoalApp(App):
                 else:
                     goal_screen.confirm_button.disabled = True
             p_usage = psutil.cpu_percent(interval=None)
-            if p_usage > 50:
+            if p_usage > 80:
                 if not self.cpu_exceeded:
                     self.cpu_exceeded = True
                     sm.get_screen('goal').set_system_state("CPU Overload", COLOR_LOOKUP[globals.States.ERROR])

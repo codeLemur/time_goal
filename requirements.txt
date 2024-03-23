@@ -2,3 +2,4 @@ RPi.GPIO
 requests
 kivy
 requests_async
+psutil
