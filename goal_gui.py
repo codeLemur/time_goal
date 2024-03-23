@@ -2,6 +2,7 @@ import logging
 import os
 import asyncio
 import queue
+import psutil
 
 from kivy.core.window import Window
 if os.name != 'nt':
@@ -109,6 +110,7 @@ class GoalApp(App):
     light_barrier_task = None
     request_task = None
     update_time_task = None
+    cpu_exceeded = False
 
     def build(self):
         return sm
@@ -138,25 +140,37 @@ class GoalApp(App):
         while True:
             while not event_queue.empty():
                 await request_socket.send_event(event_queue.get_nowait())
-            await request_socket.request_current_state()
-            previous_state = self.system_status
-            self.system_status = request_socket.get_current_state()
-            logging.info(f'Current status: {self.system_status}')
-            goal_screen = sm.get_screen('goal')
-            goal_screen.set_system_state(self.system_status.name, COLOR_LOOKUP[self.system_status])
-            if self.system_status == globals.States.RUNNING and previous_state == globals.States.READY:
-                self.start_time = time.time()
-                start_number = await request_socket.request_start_number()
-                goal_screen.set_start_number(start_number)
-            if self.system_status == globals.States.RUNNING:
-                # goal_screen.confirm_button.disabled = False
-                goal_screen.ready_button.disabled = True
-                # Update current time
-            elif self.system_status in [globals.States.IDLE, globals.States.STOPPED]:
-                goal_screen.ready_button.disabled = False
-                goal_screen.confirm_button.disabled = True
+            if not self.cpu_exceeded:
+                await request_socket.request_current_state()
+                previous_state = self.system_status
+                self.system_status = request_socket.get_current_state()
+                logging.info(f'Current status: {self.system_status}')
+                goal_screen = sm.get_screen('goal')
+                goal_screen.set_system_state(self.system_status.name, COLOR_LOOKUP[self.system_status])
+                if self.system_status == globals.States.RUNNING and previous_state == globals.States.READY:
+                    self.start_time = time.time()
+                    start_number = await request_socket.request_start_number()
+                    goal_screen.set_start_number(start_number)
+                if self.system_status == globals.States.RUNNING:
+                    # goal_screen.confirm_button.disabled = False
+                    goal_screen.ready_button.disabled = True
+                    # Update current time
+                elif self.system_status in [globals.States.IDLE, globals.States.STOPPED]:
+                    goal_screen.ready_button.disabled = False
+                    goal_screen.confirm_button.disabled = True
+                else:
+                    goal_screen.confirm_button.disabled = True
+            p_usage = psutil.cpu_percent(interval=None)
+            if p_usage > 50:
+                if not self.cpu_exceeded:
+                    self.cpu_exceeded = True
+                    sm.get_screen('goal').set_system_state("CPU Overload", COLOR_LOOKUP[globals.States.ERROR])
+                logging.error(f"CPU usage exceeded: {p_usage}%")
             else:
-                goal_screen.confirm_button.disabled = True
+                # logging.info(f"cpu usage ok: {p_usage}%")
+                if self.cpu_exceeded:
+                    self.cpu_exceeded = False
+                    self.system_status = globals.States.IDLE
             await asyncio.sleep(STATUS_POLL_PERIOD_S)
 
     async def observe_lightbarrier(self):
@@ -179,7 +193,7 @@ class GoalApp(App):
                 logging.info("Light barrier Deactivated")
                 light_barrier.current_state = False
                 sm.get_screen("goal").set_light_barrier("Deactivated", LIGHT_GREEN)
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.02)
 
 
 if __name__ == "__main__":
