@@ -30,7 +30,7 @@ from light_barrier import LightBarrier
 from request_socket import RequestSocket
 
 NS_PER_MS = int(1e6)
-STATUS_POLL_PERIOD_S = 1
+STATUS_POLL_PERIOD_S = 1.9
 
 RED = (1, 0, 0)
 GREEN = (0, 0.4, 0)
@@ -161,16 +161,16 @@ class GoalApp(App):
                 else:
                     goal_screen.confirm_button.disabled = True
             p_usage = psutil.cpu_percent(interval=None)
-            if p_usage > 80:
-                if not self.cpu_exceeded:
-                    self.cpu_exceeded = True
-                    sm.get_screen('goal').set_system_state("CPU Overload", COLOR_LOOKUP[globals.States.ERROR])
-                logging.error(f"CPU usage exceeded: {p_usage}%")
-            else:
-                # logging.info(f"cpu usage ok: {p_usage}%")
-                if self.cpu_exceeded:
-                    self.cpu_exceeded = False
-                    self.system_status = globals.States.IDLE
+            # if p_usage > 80:
+            #     if not self.cpu_exceeded:
+            #         self.cpu_exceeded = True
+            #         sm.get_screen('goal').set_system_state("CPU Overload", COLOR_LOOKUP[globals.States.ERROR])
+            #     logging.error(f"CPU usage exceeded: {p_usage}%")
+            # else:
+            #     # logging.info(f"cpu usage ok: {p_usage}%")
+            #     if self.cpu_exceeded:
+            #         self.cpu_exceeded = False
+            #         self.system_status = globals.States.IDLE
             await asyncio.sleep(STATUS_POLL_PERIOD_S)
 
     async def observe_lightbarrier(self):

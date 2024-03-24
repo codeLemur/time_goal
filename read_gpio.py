@@ -1,30 +1,14 @@
-import sys
 import time
-from pylibftdi import BitBangDevice
 
+import board
+import digitalio
 
-def read_gpio(pin_number):
-    try:
-        with BitBangDevice() as bb:
-            bb.direction = (1 << pin_number)  # Set pin as input
-            return bb.port & (1 << pin_number) != 0  # Read pin state
-    except Exception as e:
-        print("Error:", e)
-        sys.exit(1)
+button = digitalio.DigitalInOut(board.C0)
+button.direction = digitalio.Direction.INPUT
+# button.pull = digitalio.Pull.UP
 
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python read_gpio.py [pin_number]")
-        sys.exit(1)
-
-    pin_number = int(sys.argv[1])
-
-    while True:
-        try:
-            pin_state = read_gpio(pin_number)
-            print(f"GPIO pin {pin_number} state:", pin_state)
-            time.sleep(1)
-        except KeyboardInterrupt:
-            print("\nExiting...")
-            sys.exit(0)
+while True:
+    start = time.time()
+    print(button.value)
+    print(f"delta: {time.time() - start}")
+    time.sleep(0.5)

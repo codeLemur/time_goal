@@ -8,7 +8,7 @@ import time
 from enum import Enum
 import asyncio
 import requests_async as requests
-REQUEST_TIMEOUT=0.8
+REQUEST_TIMEOUT=2
 
 
 class HttpStatus(Enum):
@@ -103,7 +103,7 @@ class RequestSocket:
         response = 0
         try:
             async with requests.Session() as session:
-                response = await session.post(self.URL, json=data, timeout=REQUEST_TIMEOUT)
+                response = await session.post(self.URL, json=data, timeout=5)
             if response.status_code == HttpStatus.OK.value:
                 logging.info(f'Server response: {response.text}')
             else:
